@@ -1,10 +1,11 @@
 package com.app.cronjobs.controller;
-import com.app.cronjobs.DTO.CreateCronDTO;
+import com.app.cronjobs.dto.CreateCronDTO;
 import com.app.cronjobs.config.DynamicCronScheduler;
 import com.app.cronjobs.cron.DefaultCron;
 import com.app.cronjobs.domain.Cron;
 import com.app.cronjobs.service.CronService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,7 +16,6 @@ public class CronController {
     private final DefaultCron defaultCron;
     private final DynamicCronScheduler dynamicCronScheduler; // Inject the DynamicCronScheduler bean
 
-    @Autowired
     public CronController(CronService cronService, DefaultCron defaultCron, DynamicCronScheduler dynamicCronScheduler) {
         this.cronService = cronService;
         this.defaultCron = defaultCron;
@@ -23,36 +23,50 @@ public class CronController {
     }
 
     @PostMapping
-    public Cron createCron(@RequestBody CreateCronDTO createCronDTO) {
-        Cron cron = new Cron();
-        cron.setTitle(createCronDTO.getTitle());
-        cron.setExpression(createCronDTO.getExpression());
+    public ResponseEntity<Cron> createCron(@RequestBody CreateCronDTO createCronDTO) {
+        Cron cron = Cron.builder()
+                .title(createCronDTO.getTitle())
+                .expression(createCronDTO.getExpression())
+                .build();
         cron = cronService.save(cron);
-        return cron;
+        return ResponseEntity.ok(cron);
     }
 
     @GetMapping("/{id}")
-    public Cron getCronById(@PathVariable Long id) {
-        return cronService.findById(id);
+    public ResponseEntity<Cron> getCronById(@PathVariable Long id) {
+        Cron cron = cronService.findById(id);
+        if (cron != null) {
+            return ResponseEntity.ok(cron);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PutMapping("/{id}")
-    public Cron changeCronConfig(@PathVariable long id, @RequestBody CreateCronDTO createCronDTO) {
+    public ResponseEntity<Cron> changeCronConfig(@PathVariable long id, @RequestBody CreateCronDTO createCronDTO) {
         Cron cron = cronService.findById(id);
-        cron.setExpression(createCronDTO.getExpression());
-        cron = cronService.save(cron);
-        return cron;
+        if (cron != null) {
+            cron.setExpression(createCronDTO.getExpression());
+            cron = cronService.save(cron);
+            return ResponseEntity.ok(cron);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PutMapping("/{id}/status")
-    public Cron changeCronStatus(@PathVariable long id, @RequestParam String status) {
+    public ResponseEntity<Cron> changeCronStatus(@PathVariable long id, @RequestParam String status) {
         Cron cron = cronService.changeCronStatus(id, status);
-        if ("STOP".equals(status)) {
-            stopCronJob(cron);
-        } else if ("START".equals(status)) {
-            resumeCronJob(cron);
+        if (cron != null) {
+            if ("STOP".equals(status)) {
+                stopCronJob(cron);
+            } else if ("START".equals(status)) {
+                resumeCronJob(cron);
+            }
+            return ResponseEntity.ok(cron);
+        } else {
+            return ResponseEntity.notFound().build();
         }
-        return cron;
     }
 
     // Method to stop the cron job

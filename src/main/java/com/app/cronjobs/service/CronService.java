@@ -2,15 +2,15 @@ package com.app.cronjobs.service;
 
 import com.app.cronjobs.domain.Cron;
 import com.app.cronjobs.enums.CronStatus;
+import com.app.cronjobs.exceptions.ResourceNotFoundException;
 import com.app.cronjobs.repository.CronRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CronService extends BaseService<Cron, Long> {
-    @Autowired
     private CronRepository cronRepository;
     public CronService(CronRepository cronRepository) {
         super(cronRepository);
@@ -18,12 +18,20 @@ public class CronService extends BaseService<Cron, Long> {
     }
 
     public Cron changeCronStatus(long id, String status) {
-        Cron cron = cronRepository.findById(id).get();
-        if (cron != null) {
-            cron.setStatus(CronStatus.valueOf(status));
-            cronRepository.save(cron);
+        Optional<Cron> optionalCron = cronRepository.findById(id);
+        if (optionalCron.isPresent()) {
+            Cron cron = optionalCron.get();
+            try {
+                CronStatus cronStatus = CronStatus.valueOf(status);
+                cron.setStatus(cronStatus);
+                cronRepository.save(cron);
+                return cron;
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalArgumentException("Invalid status value: " + status);
+            }
+        } else {
+            throw new ResourceNotFoundException("Cron with ID " + id + " not found.");
         }
-        return cron;
     }
 
     public List<Cron> getActiveCrons() {

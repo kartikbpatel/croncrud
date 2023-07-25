@@ -1,14 +1,5 @@
 package com.app.cronjobs.cron;
-import com.app.cronjobs.domain.Cron;
-import com.app.cronjobs.enums.CronStatus;
 import com.app.cronjobs.repository.CronRepository;
-import org.apache.catalina.core.ApplicationContext;
-import org.quartz.impl.StdSchedulerFactory;
-import org.quartz.spi.JobFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
@@ -18,7 +9,6 @@ import org.quartz.*;
 
 @Component
 public class CronJobScheduler {
-    @Autowired
     private CronRepository cronRepository;
 
 //    @Scheduled(fixedDelay = 1000)

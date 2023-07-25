@@ -1,4 +1,4 @@
-package com.app.cronjobs.DTO;
+package com.app.cronjobs.dto;
 
 import lombok.Data;
 

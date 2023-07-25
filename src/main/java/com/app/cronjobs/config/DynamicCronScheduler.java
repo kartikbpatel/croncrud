@@ -12,15 +12,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Component
 public class DynamicCronScheduler {
     private final CronService cronService;
     private final TaskScheduler taskScheduler;
     private final Map<Long, ScheduledFuture<?>> scheduledTasks;
+    private static final Logger LOGGER = Logger.getLogger(DynamicCronScheduler.class.getName());
 
 
-    @Autowired
     public DynamicCronScheduler(CronService cronService, TaskScheduler taskScheduler) {
         this.cronService = cronService;
         this.taskScheduler = taskScheduler;
@@ -37,14 +39,14 @@ public class DynamicCronScheduler {
         String cronExpression = cron.getExpression();
         long cronId = cron.getId();
         Runnable task = () -> {
-            System.out.println("Executing cron job with ID: " + cronId);
+            LOGGER.log(Level.INFO, "Executing cron job with ID: {0}", cronId);
         };
         try {
             CronTrigger cronTrigger = new CronTrigger(cronExpression);
             ScheduledFuture<?> scheduledFuture = taskScheduler.schedule(task, cronTrigger);
             scheduledTasks.put(cronId, scheduledFuture);
         } catch (IllegalArgumentException e) {
-            System.err.println("Invalid cron expression for cron ID: " + cronId);
+            LOGGER.log(Level.SEVERE, "Invalid cron expression for cron ID: {0}", cronId);
         }
     }
 
