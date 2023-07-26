@@ -20,7 +20,6 @@ import lombok.NoArgsConstructor;
 public class Cron extends BaseEntity{
     private String title;
     private String expression;
-//    private boolean isRunning;
     @Enumerated(EnumType.STRING)
     private CronStatus status;
 }
